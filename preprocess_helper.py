@@ -1,3 +1,5 @@
+import numpy as np
+
 def load_raw_data(filename):
   """ Load a file and read it line-by-line
     Parameters:
@@ -45,12 +47,17 @@ def add_tokens_to_sentences(raw_sentences, max_sent_length):
     sentences normalized following the process described in the handout task 1), 1a)
     """
   normalized_sentences = []
+  labels = []
   for raw_sentence in raw_sentences:
     number_of_words = len(raw_sentence.split())
     if number_of_words < max_sent_length:
       sentence = '<bos> ' + raw_sentence.rstrip() + ' ' + '<pad> ' * (max_sent_length-number_of_words) + '<eos>'
+      sentence = sentence.split(' ')
       normalized_sentences.append(sentence)
-  return normalized_sentences
+      label = sentence[1:]
+      label.append('')
+      labels.append(label)
+  return np.asarray(normalized_sentences), np.asarray(labels)
 
 def replace_unknown_words(input_sentences, frequent_words):
   """ replace all the words that don't belong to
@@ -104,14 +111,14 @@ def replace_unknown_words(input_sentences, frequent_words):
   return output_sentences
 
 def load_frequent_words(frequent_word_filename):
-  frequent_words = preprocess_helper.load_raw_data(frequent_word_filename)
+  frequent_words = load_raw_data(frequent_word_filename)
   frequent_words = [word.rstrip() for word in frequent_words]
   frequent_words.extend(['<bos>','<eos>','<unk>','<pad>'])
   return frequent_words
 
 def load_and_process_data(filename, frequent_words, max_sent_length):
-  raw_data = preprocess_helper.load_raw_data(filename)
-  data = preprocess_helper.replace_unknown_words(raw_data, frequent_words)
-  data = preprocess_helper.add_tokens_to_sentences(data, max_sent_length)
+  raw_data = load_raw_data(filename)
+  data = replace_unknown_words(raw_data, frequent_words)
+  data, labels = add_tokens_to_sentences(data, max_sent_length)
   print('- Number of sentences loaded: ', len(data))
-  return data
+  return data, labels
