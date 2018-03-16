@@ -31,7 +31,7 @@ def argsort(seq):
     """
   return sorted(range(len(seq)), key=seq.__getitem__)
 
-def add_tokens_to_sentences(raw_sentences, max_sent_length):
+def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length):
   """ Add the tokens <bos>, <eos>, <pad> to
     a list of sentences stored in raw_sentences
     Parameters:
@@ -46,18 +46,20 @@ def add_tokens_to_sentences(raw_sentences, max_sent_length):
     normalized_sentences: list of string
     sentences normalized following the process described in the handout task 1), 1a)
     """
-  normalized_sentences = []
-  labels = []
+  sentences_with_indices = []
+  labels_with_indices = []
   for raw_sentence in raw_sentences:
     number_of_words = len(raw_sentence.split())
     if number_of_words < max_sent_length:
       sentence = '<bos> ' + raw_sentence.rstrip() + ' ' + '<pad> ' * (max_sent_length-number_of_words) + '<eos>'
       sentence = sentence.split(' ')
-      normalized_sentences.append(sentence)
-      label = sentence[1:]
-      label.append('')
-      labels.append(label)
-  return np.asarray(normalized_sentences), np.asarray(labels)
+      # word2index
+      sentence_with_indices = [vocab[word] for word in sentence]
+      sentences_with_indices.append(sentence_with_indices)
+      label_with_indices = sentence_with_indices[1:]
+      label_with_indices.append(vocab['<eos>'])
+      labels_with_indices.append(label_with_indices)
+  return np.asarray(sentences_with_indices), np.asarray(labels_with_indices)
 
 def replace_unknown_words(input_sentences, frequent_words):
   """ replace all the words that don't belong to
@@ -116,9 +118,9 @@ def load_frequent_words(frequent_word_filename):
   frequent_words.extend(['<bos>','<eos>','<unk>','<pad>'])
   return frequent_words
 
-def load_and_process_data(filename, frequent_words, max_sent_length):
+def load_and_process_data(filename, vocab, frequent_words, max_sent_length):
   raw_data = load_raw_data(filename)
   data = replace_unknown_words(raw_data, frequent_words)
-  data, labels = add_tokens_to_sentences(data, max_sent_length)
+  data, labels = add_tokens_to_sentences(data, vocab, max_sent_length)
   print('- Number of sentences loaded: ', len(data))
   return data, labels
