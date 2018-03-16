@@ -50,7 +50,7 @@ def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length):
   labels_with_indices = []
   for raw_sentence in raw_sentences:
     number_of_words = len(raw_sentence.split())
-    if number_of_words < max_sent_length:
+    if number_of_words <= max_sent_length:
       sentence = '<bos> ' + raw_sentence.rstrip() + ' ' + '<pad> ' * (max_sent_length-number_of_words) + '<eos>'
       sentence = sentence.split(' ')
       # word2index
