@@ -1,4 +1,4 @@
-def load_embedding(self, session, vocab, emb, path, dim_embedding):
+def load_embedding(session, vocab, emb, path, dim_embedding):
   '''
     session        Tensorflow session object
     vocab          A dictionary mapping token strings to vocabulary IDs
