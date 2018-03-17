@@ -1,0 +1,17 @@
+{
+    "is_training" : true,
+    "sentence_length" : 30,
+    "batch_size" : 64,
+    "embedding_dimensions" : 100,
+    "state_size" : 512,
+    "max_grad_norm" : 5,
+    "vocabulary_size" : 20004,
+    "number_of_epochs" : 20,
+    "learning_rate" : 0.1,
+    "path_to_word2vec" :  "wordembeddings-dim100.word2vec",
+    "use_word2vec_emb" : false,
+    "verbose" : true,
+    "save_model" : true,
+    "saving_path" : "model/toy-model.ckpt",
+    "restored_model" : ""
+}
