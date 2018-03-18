@@ -1,6 +1,7 @@
 {
     "is_training" : true,
     "sentence_length" : 30,
+    "predicted_words" : 29,
     "batch_size" : 64,
     "embedding_dimensions" : 100,
     "state_size" : 512,

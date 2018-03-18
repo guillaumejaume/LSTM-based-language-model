@@ -57,7 +57,6 @@ def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length):
       sentence_with_indices = [vocab[word] for word in sentence]
       sentences_with_indices.append(sentence_with_indices)
       label_with_indices = sentence_with_indices[1:]
-      label_with_indices.append(vocab['<eos>'])
       labels_with_indices.append(label_with_indices)
   return np.asarray(sentences_with_indices), np.asarray(labels_with_indices)
 
