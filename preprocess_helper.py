@@ -1,4 +1,7 @@
 import numpy as np
+import string
+from collections import defaultdict
+from random import randint
 
 def load_raw_data(filename):
   """ Load a file and read it line-by-line
@@ -123,3 +126,113 @@ def load_and_process_data(filename, vocab, frequent_words, max_sent_length):
   data, labels = add_tokens_to_sentences(data, vocab, max_sent_length)
   print('- Number of sentences loaded: ', len(data))
   return data, labels
+
+def remove_punctuation_and_digits_from_line(line):
+    """ Removes the punctuation and the digits from line
+    Parameters:
+    -----------
+    line: string
+    line from which the punctuation and the digits should be removed
+    
+    Returns:
+    line: string
+    line with removed punctuation and digits
+    
+    """
+    #https://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-from-a-string-in-python
+    line = line.translate(str.maketrans('','',string.punctuation))
+    line = line.translate(str.maketrans('','','0123456789'))
+    return line
+
+def generate_top_k_words(file_name, remove_punctuation, k):
+    """ Generates k most frequent words
+    Parameters:
+    -----------
+    filename: string
+    path to the file to load
+    
+    remove_punctuation: bool
+    defines whether the punctuation is removed or not
+    
+    k: int
+    number of words 
+    
+    Returns:
+    --------
+    top_k_frequent_words: list 
+    the most frequent k words
+    """
+    raw_lines_of_data = load_raw_data(file_name)
+    lines = []
+    if(remove_punctuation == True):
+        lines.extend(remove_punctuation_and_digits_from_line(line.rstrip('\n')) for line in raw_lines_of_data)
+    else:
+        lines.extend(line.rstrip('\n') for line in raw_lines_of_data)
+    words = []
+    for line in lines:
+        words.extend(line.split())
+
+    frequency_dictionary = defaultdict(int)
+    for word in words:
+        frequency_dictionary[word] = frequency_dictionary.get(word, 0) + 1
+    
+    frequency_dictionary = sorted(frequency_dictionary.items(), key=lambda item: item[1], reverse=True)
+    top_k_frequent_key_pairs = frequency_dictionary[:k]
+    top_k_frequent_words = [key_pair[0] for key_pair in top_k_frequent_key_pairs]
+    
+    return top_k_frequent_words
+
+def write_list_to_file(string_list, filename):
+    """ Writes list of items in a file, each item on a separated line
+    Parameters:
+    string_list: list
+    list to be written
+    
+    filename: string
+    file name
+    """
+    file = open(filename, "w")
+    for item in string_list:
+        file.write("%s\n" % item)
+    file.close()
+    
+def generate_train_test_lists(list_to_sample_from, number_of_sublist_items):
+    """ Splits all the data in data for testing and training
+    Parameters:
+    list_to_sample_from : list
+    contains all the data that needs to be splitted
+    
+    number_of_sublist_items : int
+    the number of training items
+    
+    Returns:
+    train_list: list
+    train list
+    test_list: list
+    test list
+    """
+    len_full_list = len(list_to_sample_from)
+    train_list = []
+    test_list = []
+    is_selected_list = [False] * len(list_to_sample_from)
+    number_elements_extracted = 0
+    
+    print("len_full_list", len_full_list)
+    while(number_elements_extracted < number_of_sublist_items):
+        idx = randint(0, number_of_sublist_items-1)
+        if(not is_selected_list[idx]):
+            test_list.append(list_to_sample_from[idx])
+            number_elements_extracted = number_elements_extracted + 1
+            is_selected_list[idx] = True 
+            
+    for idx, item in enumerate(is_selected_list):
+        if(is_selected_list[idx] == False):
+            train_list.append(list_to_sample_from[idx])
+            
+    return train_list, test_list
+        
+    
+    
+    
+    
+    

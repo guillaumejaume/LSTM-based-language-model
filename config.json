@@ -14,5 +14,9 @@
     "verbose" : true,
     "save_model" : true,
     "saving_path" : "model/toy-model.ckpt",
-    "restored_model" : ""
+    "restored_model" : "",
+    "remove_punctuation" : true,
+    "input_file_name" : "data/sentences.eval",
+    "k_frequent_words" : 20000,
+    "frequent_words_file_name" : "data/k_frequent_words.txt"
 }
