@@ -1,6 +1,7 @@
 import numpy as np
 import string
 from collections import defaultdict
+from random import randint
 
 def load_raw_data(filename):
   """ Load a file and read it line-by-line
@@ -195,4 +196,43 @@ def write_list_to_file(string_list, filename):
         file.write("%s\n" % item)
     file.close()
     
-
+def generate_train_test_lists(list_to_sample_from, number_of_sublist_items):
+    """ Splits all the data in data for testing and training
+    Parameters:
+    list_to_sample_from : list
+    contains all the data that needs to be splitted
+    
+    number_of_sublist_items : int
+    the number of training items
+    
+    Returns:
+    train_list: list
+    train list
+    test_list: list
+    test list
+    """
+    len_full_list = len(list_to_sample_from)
+    train_list = []
+    test_list = []
+    is_selected_list = [False] * len(list_to_sample_from)
+    number_elements_extracted = 0
+    
+    print("len_full_list", len_full_list)
+    while(number_elements_extracted < number_of_sublist_items):
+        idx = randint(0, number_of_sublist_items-1)
+        if(not is_selected_list[idx]):
+            test_list.append(list_to_sample_from[idx])
+            number_elements_extracted = number_elements_extracted + 1
+            is_selected_list[idx] = True 
+            
+    for idx, item in enumerate(is_selected_list):
+        if(is_selected_list[idx] == False):
+            train_list.append(list_to_sample_from[idx])
+            
+    return train_list, test_list
+        
+    
+    
+    
+    
+    
