@@ -2,6 +2,7 @@ import numpy as np
 import string
 from collections import defaultdict
 from random import randint
+import random
 
 def load_raw_data(filename):
   """ Load a file and read it line-by-line
@@ -141,7 +142,6 @@ def remove_punctuation_and_digits_from_line(line):
     """
     #https://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-from-a-string-in-python
     line = line.translate(str.maketrans('','',string.punctuation))
-    line = line.translate(str.maketrans('','','0123456789'))
     return line
 
 def generate_top_k_words(file_name, remove_punctuation, k):
@@ -211,23 +211,13 @@ def generate_train_test_lists(list_to_sample_from, number_of_sublist_items):
     test_list: list
     test list
     """
-    len_full_list = len(list_to_sample_from)
-    train_list = []
-    test_list = []
-    is_selected_list = [False] * len(list_to_sample_from)
-    number_elements_extracted = 0
+    unique_ids = random.sample(range(len(list_to_sample_from)), number_of_sublist_items)
+    test_list = [list_to_sample_from[idx] for idx in unique_ids]
     
-    print("len_full_list", len_full_list)
-    while(number_elements_extracted < number_of_sublist_items):
-        idx = randint(0, number_of_sublist_items-1)
-        if(not is_selected_list[idx]):
-            test_list.append(list_to_sample_from[idx])
-            number_elements_extracted = number_elements_extracted + 1
-            is_selected_list[idx] = True 
-            
-    for idx, item in enumerate(is_selected_list):
-        if(is_selected_list[idx] == False):
-            train_list.append(list_to_sample_from[idx])
+    unique_ids_bool = np.ones((len(list_to_sample_from)), dtype=bool) 
+    unique_ids_bool[unique_ids] = False;
+    list_to_sample_from = np.array(list_to_sample_from)
+    train_list = list_to_sample_from[unique_ids_bool]
             
     return train_list, test_list
         
