@@ -13,8 +13,8 @@ import pickle
 ## PARAMETERS ##
 
 # Data loading parameters
-tf.flags.DEFINE_float("val_sample_percentage", .01, "Percentage of the training data used for validation")
-tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
+tf.flags.DEFINE_float("val_sample_percentage", .001, "Percentage of the training data used for validation")
+tf.flags.DEFINE_string("data_file_path", "data/sentences.train", "Path to the training data")
 tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.txt", "Path to the vocabulary list")
 
 # Model parameters
@@ -84,9 +84,7 @@ print('Training labels has shape: ', np.shape(y_train))
 print('Validation labels has shape: ', np.shape(y_val))
 
 # Generate training batches
-# batches = data_utils.batch_iter(list(zip(x_train, y_train)), FLAGS.batch_size, FLAGS.num_epochs)
-# TODO check how all the batches are generated ...
-batches = []
+batches = preprocess_helper.batch_iter(list(zip(x_train, y_train)), FLAGS.batch_size, FLAGS.num_epochs)
 
 print("Loading and preprocessing done \n")
 ## MODEL AND TRAINING PROCEDURE DEFINITION ##
@@ -109,7 +107,7 @@ with tf.Graph().as_default():
         # Training step
         global_step = tf.Variable(0, name="global_step", trainable=False)
         # Define Adam optimizer
-        learning_rate = 0.0001
+        learning_rate = 0.01
         optimizer = tf.train.AdamOptimizer(learning_rate)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(lstm_language_model.loss, tvars),
@@ -166,7 +164,7 @@ with tf.Graph().as_default():
                                                                        lstm_language_model.accuracy], feed_dict)
             time_str = datetime.datetime.now().isoformat()
             print('\n\n')
-            print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
+            print("{}: step {}, perplexity {:g}, acc {:g}".format(time_str, step, perplexity, accuracy))
             train_summary_writer.add_summary(summaries, step)
 
         def dev_step(inputs, labels, vocab_emb, writer=None):
@@ -178,13 +176,14 @@ with tf.Graph().as_default():
                 lstm_language_model.labels: labels,
                 lstm_language_model.vocab_embedding: vocab_emb
             }
-            step, summaries, loss, perplexity, accuracy = sess.run([global_step,
-                                                                    val_summary_op,
-                                                                    lstm_language_model.loss,
-                                                                    lstm_language_model.perplexity,
-                                                                    lstm_language_model.accuracy], feed_dict)
+            step, summaries, predictions, perplexity, accuracy = sess.run([global_step,
+                                                                           val_summary_op,
+                                                                           lstm_language_model.predictions,
+                                                                           lstm_language_model.perplexity,
+                                                                           lstm_language_model.accuracy], feed_dict)
             time_str = datetime.datetime.now().isoformat()
-            print("{}: step {}, loss {:g}, acc {:g}".format(time_str, step, loss, accuracy))
+            print("{}: step {}, perplexity {:g}, acc {:g}".format(time_str, step, perplexity, accuracy))
+            print(predictions)
             if writer:
                 writer.add_summary(summaries, step)
 
@@ -201,7 +200,7 @@ with tf.Graph().as_default():
             current_step = tf.train.global_step(sess, global_step)
             if current_step % FLAGS.evaluate_every == 0:
                 print("\nEvaluation:")
-                dev_step(x_dev, y_dev, vocab_embedding, writer=val_summary_writer)
+                dev_step(x_val, y_val, vocab_embedding, writer=val_summary_writer)
                 print("")
             if current_step % FLAGS.checkpoint_every == 0:
                 path = saver.save(sess, checkpoint_prefix, global_step=current_step)
