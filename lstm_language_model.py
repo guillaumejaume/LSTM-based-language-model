@@ -18,7 +18,7 @@ class LSTMLanguageModel:
 
         # where to store the cell_output after each time_step
         output = []
-        for time_step in range(sentence_length - 1):
+        for time_step in range(sentence_length-1):
             cell_output, state = lstm_cell(input_batch[:, time_step, :], state)
             output.append(cell_output)
         output = tf.reshape(output, [(sentence_length-1) * tf.shape(input_batch)[0], state_size])
@@ -73,8 +73,9 @@ class LSTMLanguageModel:
 
             with tf.variable_scope("loss"):
                 # @TODO compute the loss only on the tokens that make sense (without all the padding)
-                # trunc_labels = labels[1:<eos>]
-                # trunc_logits = logits[1:<eos>]
+
+                #end_of_sentence = tf.where(tf.equal(self.labels, val))
+
                 self.loss = tf.nn.sparse_softmax_cross_entropy_with_logits(labels=self.labels,
                                                                            logits=self.logits)
                 self.loss = tf.reduce_mean(self.loss)
