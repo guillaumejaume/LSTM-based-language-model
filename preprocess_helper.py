@@ -5,7 +5,7 @@ import random
 
 
 def load_raw_data(filename):
-  """ Load a file and read it line-by-line
+    """ Load a file and read it line-by-line
     Parameters:
     -----------
     filename: string
@@ -15,14 +15,14 @@ def load_raw_data(filename):
     --------
     raw: list of sentences
     """
-  file = open(filename, "r")
-  raw_data = file.readlines()
-  file.close()
-  return raw_data
+    file = open(filename, "r")
+    raw_data = file.readlines()
+    file.close()
+    return raw_data
 
 
 def argsort(seq):
-  """ Argsort a list of string
+    """ Argsort a list of string
     Parameters:
     -----------
     seq: list of words
@@ -34,7 +34,7 @@ def argsort(seq):
     list of indices (same size as input seq) sorted
     (eg. seq=['foo', 'bar','foo','toto'] => out=[1,0,2,3])
     """
-  return sorted(range(len(seq)), key=seq.__getitem__)
+    return sorted(range(len(seq)), key=seq.__getitem__)
 
 
 def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length):
@@ -66,6 +66,9 @@ def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length):
             sentences_with_indices.append(sentence_with_indices)
             label_with_indices = sentence_with_indices[1:]
             labels_with_indices.append(label_with_indices)
+            #print(sentence_with_indices)
+            #print(label_with_indices)
+            #print('\n')
     return np.asarray(sentences_with_indices), np.asarray(labels_with_indices)
 
 
@@ -87,13 +90,14 @@ def replace_unknown_words(input_sentences, vocab):
   # argsort all the words from each sentence
   all_words = []
   for sentence in input_sentences:
-    all_words.extend(sentence.split())
-    all_words.extend('\n')
+    sentence = remove_punctuation_and_digits_from_line(sentence)
+    if sentence and not sentence.isspace():
+      all_words.extend(sentence.split())
+      all_words.extend('\n')
   indices = argsort(all_words)
 
   # replace by <unk> when necessary
   current_word = ''
-  sentence = ''
   replace = False
   for idx in indices:
     if not all_words[idx] == '\n':
@@ -112,7 +116,7 @@ def replace_unknown_words(input_sentences, vocab):
   sentence = ''
   for word in all_words:
     if word == '\n':
-      output_sentences.append(sentence)
+      output_sentences.append(' '.join(sentence.split()))
       sentence = ''
     else:
       sentence += word
@@ -192,7 +196,7 @@ def generate_top_k_words(file_name, remove_punctuation, k):
     """
     raw_lines_of_data = load_raw_data(file_name)
     lines = []
-    if(remove_punctuation == True):
+    if remove_punctuation:
         lines.extend(remove_punctuation_and_digits_from_line(line.rstrip('\n')) for line in raw_lines_of_data)
     else:
         lines.extend(line.rstrip('\n') for line in raw_lines_of_data)
