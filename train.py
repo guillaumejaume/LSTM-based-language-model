@@ -8,20 +8,24 @@ import os
 import time
 import datetime
 
-import pickle
+import gensim
 
-## PARAMETERS ##
+#Training parameters
 
 # Data loading parameters
 tf.flags.DEFINE_float("val_sample_percentage", .001, "Percentage of the training data used for validation")
-tf.flags.DEFINE_string("data_file_path", "data/sentences.train", "Path to the training data")
+tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
 tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.txt", "Path to the vocabulary list")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
 tf.flags.DEFINE_integer("vocabulary_size", 20000, "Size of the vocabulary")
-tf.flags.DEFINE_integer("state_size", 3, "Size of the hidden LSTM state")
+tf.flags.DEFINE_integer("state_size", 512, "Size of the hidden LSTM state")
 tf.flags.DEFINE_integer("sentence_length", 30, "Length of each sentence fed to the LSTM")
+
+# Embedding parameters
+tf.flags.DEFINE_boolean("use_word2vec_emb", True, "Use word2vec embedding")
+tf.flags.DEFINE_string("path_to_word2vec", "wordembeddings-dim100.word2vec", "Path to the embedding file")
 
 # Training parameters
 tf.flags.DEFINE_integer("max_grad_norm", 5, "max norm of the gradient")
@@ -45,19 +49,11 @@ tf.flags.DEFINE_integer("intra_op_parallelism_threads", 0,
 
 FLAGS = tf.flags.FLAGS
 
-print("\nParameters:")
-for attr, value in sorted(FLAGS.__flags.items()):
-    print("{}={}".format(attr.upper(), value.value))
-print("")
-
-## DATA PREPARATION ##
-
-# Load data
+# Prepare the data
 print("Load vocabulary list \n")
 vocab = preprocess_helper.load_frequent_words(FLAGS.vocab_file_path)
 
 print("Loading and preprocessing training and validation datasets \n")
-# TODO return all the data loaded in a numpy array
 data, labels = preprocess_helper.load_and_process_data(FLAGS.data_file_path,
                                                        vocab,
                                                        FLAGS.sentence_length)
@@ -87,9 +83,8 @@ print('Validation labels has shape: ', np.shape(y_val))
 batches = preprocess_helper.batch_iter(list(zip(x_train, y_train)), FLAGS.batch_size, FLAGS.num_epochs)
 
 print("Loading and preprocessing done \n")
-## MODEL AND TRAINING PROCEDURE DEFINITION ##
 
-# TODO check the meaning of these params set in the session
+# Define the model and start traiining
 with tf.Graph().as_default():
     session_conf = tf.ConfigProto(
         allow_soft_placement=FLAGS.allow_soft_placement,
@@ -99,8 +94,7 @@ with tf.Graph().as_default():
     sess = tf.Session(config=session_conf)
     with sess.as_default():
         # Initialize model
-        lstm_language_model = LSTMLanguageModel(sentence_length=FLAGS.sentence_length,
-                                                vocabulary_size=FLAGS.vocabulary_size,
+        lstm_language_model = LSTMLanguageModel(vocabulary_size=FLAGS.vocabulary_size,
                                                 embedding_dimensions=FLAGS.embedding_dimension,
                                                 state_size=FLAGS.state_size)
 
@@ -183,15 +177,18 @@ with tf.Graph().as_default():
                                                                            lstm_language_model.accuracy], feed_dict)
             time_str = datetime.datetime.now().isoformat()
             print("{}: step {}, perplexity {:g}, acc {:g}".format(time_str, step, perplexity, accuracy))
-            print(predictions)
+            print('Predictions: ', predictions)
             if writer:
                 writer.add_summary(summaries, step)
 
-        # construct an embedding for all the words in the vocab
-        # TODO use word2vec embedding option here ...
+        #  Embedding function use word2vec embedding option here
         vocab_embedding = np.zeros(shape=(FLAGS.vocabulary_size, FLAGS.embedding_dimension))
+        model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.path_to_word2vec, binary=False)
         for tok, idx in vocab.items():
-            vocab_embedding[idx] = np.random.uniform(low=-1, high=1, size=FLAGS.embedding_dimension)
+            if FLAGS.use_word2vec_emb and tok in model.vocab:
+                vocab_embedding[idx] = model[tok]
+            else:
+                vocab_embedding[idx] = np.random.uniform(low=-1, high=1, size=FLAGS.embedding_dimension)
 
         # TRAINING LOOP
         for batch in batches:
