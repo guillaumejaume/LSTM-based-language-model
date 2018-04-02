@@ -41,14 +41,14 @@ def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length, eos_token=Tru
     Parameters:
     -----------
     raw_sentences: list of string
-    list of sentences, where each word is already separated by a space char
+        list of sentences, where each word is already separated by a space char
     max_sent_lenght: int
-    maximal size authorized for a sentence, if longer than it is discarded
+        maximal size authorized for a sentence, if longer than it is discarded
 
     Returns:
     --------
     normalized_sentences: list of string
-    sentences normalized following the process described in the handout task 1), 1a)
+        sentences normalized as indices following the process described in the handout task 1), 1a)
     """
     sentences_with_indices = []
     labels_with_indices = []
@@ -70,58 +70,70 @@ def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length, eos_token=Tru
 
 
 def replace_unknown_words(input_sentences, vocab):
-  """ replace all the words that don't belong to
-    a list of known words with the token <unk>
-    Parameters:
-    -----------
-    input_sentences: list of string
-        list of sentences, where each word is already separated by a space char
-    vocab: dict of words
-        dict of the common words
-    
-    Returns:
-    --------
-    output_sentences: list of string
-    sentences where each unknown word was replaced by <unk>
-    """
-  # argsort all the words from each sentence
-  all_words = []
-  for sentence in input_sentences:
-    if sentence and not sentence.isspace():
-      all_words.extend(sentence.split())
-      all_words.extend('\n')
-  indices = argsort(all_words)
+    """ replace all the words that don't belong to
+      a list of known words with the token <unk>
+      Parameters:
+      -----------
+      input_sentences: list of string
+          list of sentences, where each word is already separated by a space char
+      vocab: dict of words
+          dict of the common words
 
-  # replace by <unk> when necessary
-  current_word = ''
-  replace = False
-  for idx in indices:
-    if not all_words[idx] == '\n':
-      if current_word == all_words[idx]:
-        if replace:
-          all_words[idx] = '<unk>'
-      else:
-        replace = False
-        current_word = all_words[idx]
-        if not current_word in vocab.keys():
-          all_words[idx] = '<unk>'
-          replace = True
+      Returns:
+      --------
+      output_sentences: list of string
+      sentences where each unknown word was replaced by <unk>
+      """
+    # argsort all the words from each sentence
+    all_words = []
+    for sentence in input_sentences:
+        if sentence and not sentence.isspace():
+            all_words.extend(sentence.split())
+            all_words.extend('\n')
+    indices = argsort(all_words)
 
-  # reconstruct the sentences
-  output_sentences = []
-  sentence = ''
-  for word in all_words:
-    if word == '\n':
-      output_sentences.append(' '.join(sentence.split()))
-      sentence = ''
-    else:
-      sentence += word
-      sentence += ' '
+    # replace by <unk> when necessary
+    current_word = ''
+    replace = False
+    for idx in indices:
+        if not all_words[idx] == '\n':
+            if current_word == all_words[idx]:
+                if replace:
+                    all_words[idx] = '<unk>'
+            else:
+                replace = False
+                current_word = all_words[idx]
+                if not current_word in vocab.keys():
+                    all_words[idx] = '<unk>'
+                    replace = True
 
-  return output_sentences
+    # reconstruct the sentences
+    output_sentences = []
+    sentence = ''
+    for word in all_words:
+        if word == '\n':
+            output_sentences.append(' '.join(sentence.split()))
+            sentence = ''
+        else:
+            sentence += word
+            sentence += ' '
+
+    return output_sentences
 
 
 def load_frequent_words(frequent_word_filename):
+    """ Load the list of frequent words
+      Parameters:
+      -----------
+      frequent_word_filename: path to file
+          text file where each line is a freq word to parse
+
+      Returns:
+      --------
+      vocab: dict
+        - the keys are the freq words
+        - the values are the indices
+      """
     frequent_words = load_raw_data(frequent_word_filename)
     frequent_words = [word.rstrip() for word in frequent_words]
     vocab = {word: i for i, word in enumerate(frequent_words)}
@@ -129,6 +141,27 @@ def load_frequent_words(frequent_word_filename):
 
 
 def load_and_process_data(filename, vocab, max_sent_length, eos_token=True, pad_sentence=True):
+    """ Load the list of frequent words
+      Parameters:
+      -----------
+      filename: string
+          path to file containing the raw data (ie. the sentences)
+    vocab: dict
+        - the keys are the freq words
+        - the values are the indices
+    max_sent_length: int
+        max authorized length for a sentence
+    eos_token: bool (default=True)
+        if the token <eos> should be added at the end of each sentence
+    pas_sentence: bool (default=True)
+        if the sentences should be padded to match the max_sent_length
+
+      Returns:
+      --------
+      vocab: dict
+        - the keys are the freq words
+        - the values are the indices
+      """
     raw_data = load_raw_data(filename)
     data = replace_unknown_words(raw_data, vocab)
     data, labels = add_tokens_to_sentences(data, vocab, max_sent_length, eos_token, pad_sentence)
