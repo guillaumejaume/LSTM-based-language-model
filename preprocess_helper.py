@@ -1,8 +1,6 @@
 import numpy as np
 import string
 from collections import defaultdict
-import random
-
 
 def load_raw_data(filename):
     """ Load a file and read it line-by-line
@@ -37,7 +35,7 @@ def argsort(seq):
     return sorted(range(len(seq)), key=seq.__getitem__)
 
 
-def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length):
+def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length, eos_token=True, pad_sentence=True):
     """ Add the tokens <bos>, <eos>, <pad> to
     a list of sentences stored in raw_sentences
     Parameters:
@@ -57,8 +55,10 @@ def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length):
     for raw_sentence in raw_sentences:
         number_of_words = len(raw_sentence.split())
         if number_of_words <= max_sent_length-2:
-            sentence = '<bos> ' + raw_sentence.rstrip() + ' <eos>'
-            if max_sent_length-number_of_words-2 > 0:
+            sentence = '<bos> ' + raw_sentence.rstrip()
+            if eos_token:
+                sentence += ' <eos>'
+            if max_sent_length-number_of_words-2 > 0 and pad_sentence:
                 sentence += ' ' + '<pad> ' * (max_sent_length-number_of_words-3) + '<pad>'
             sentence = sentence.split(' ')
             # word2index
@@ -66,9 +66,6 @@ def add_tokens_to_sentences(raw_sentences, vocab, max_sent_length):
             sentences_with_indices.append(sentence_with_indices)
             label_with_indices = sentence_with_indices[1:]
             labels_with_indices.append(label_with_indices)
-            #print(sentence_with_indices)
-            #print(label_with_indices)
-            #print('\n')
     return np.asarray(sentences_with_indices), np.asarray(labels_with_indices)
 
 
@@ -90,7 +87,6 @@ def replace_unknown_words(input_sentences, vocab):
   # argsort all the words from each sentence
   all_words = []
   for sentence in input_sentences:
-    sentence = remove_punctuation_and_digits_from_line(sentence)
     if sentence and not sentence.isspace():
       all_words.extend(sentence.split())
       all_words.extend('\n')
@@ -132,28 +128,11 @@ def load_frequent_words(frequent_word_filename):
     return vocab
 
 
-def load_and_process_data(filename, vocab, max_sent_length):
+def load_and_process_data(filename, vocab, max_sent_length, eos_token=True, pad_sentence=True):
     raw_data = load_raw_data(filename)
     data = replace_unknown_words(raw_data, vocab)
-    data, labels = add_tokens_to_sentences(data, vocab, max_sent_length)
+    data, labels = add_tokens_to_sentences(data, vocab, max_sent_length, eos_token, pad_sentence)
     return data, labels
-
-
-def remove_punctuation_and_digits_from_line(line):
-    """ Removes the punctuation and the digits from line
-    Parameters:
-    -----------
-    line: string
-    line from which the punctuation and the digits should be removed
-    
-    Returns:
-    line: string
-    line with removed punctuation and digits
-    
-    """
-    #https://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-from-a-string-in-python
-    line = line.translate(str.maketrans('', '', string.punctuation))
-    return line
 
 
 def batch_iter(data, batch_size, num_epochs, shuffle=True):
@@ -176,15 +155,12 @@ def batch_iter(data, batch_size, num_epochs, shuffle=True):
             yield shuffled_data[start_index:end_index]
 
 
-def generate_top_k_words(file_name, remove_punctuation, k):
+def generate_top_k_words(file_name, k):
     """ Generates k most frequent words
     Parameters:
     -----------
     filename: string
     path to the file to load
-    
-    remove_punctuation: bool
-    defines whether the punctuation is removed or not
     
     k: int
     number of words 
@@ -196,10 +172,7 @@ def generate_top_k_words(file_name, remove_punctuation, k):
     """
     raw_lines_of_data = load_raw_data(file_name)
     lines = []
-    if remove_punctuation:
-        lines.extend(remove_punctuation_and_digits_from_line(line.rstrip('\n')) for line in raw_lines_of_data)
-    else:
-        lines.extend(line.rstrip('\n') for line in raw_lines_of_data)
+    lines.extend(line.rstrip('\n') for line in raw_lines_of_data)
     words = []
     for line in lines:
         words.extend(line.split())
