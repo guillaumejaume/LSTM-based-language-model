@@ -30,9 +30,9 @@ tf.flags.DEFINE_string("path_to_word2vec", "wordembeddings-dim100.word2vec", "Pa
 # Training parameters
 tf.flags.DEFINE_integer("max_grad_norm", 5, "max norm of the gradient")
 tf.flags.DEFINE_integer("batch_size", 64, "Batch Size")
-tf.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs ")
-tf.flags.DEFINE_integer("evaluate_every", 100, "Evaluate model on validation set after this many steps ")
-tf.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps ")
+tf.flags.DEFINE_integer("num_epochs", 200, "Number of training epochs")
+tf.flags.DEFINE_integer("evaluate_every", 100, "Evaluate model on validation set after this many steps")
+tf.flags.DEFINE_integer("checkpoint_every", 100, "Save model after this many steps")
 tf.flags.DEFINE_integer("num_checkpoints", 5, "Number of checkpoints to store")
 
 # Tensorflow Parameters
@@ -101,7 +101,7 @@ with tf.Graph().as_default():
         # Training step
         global_step = tf.Variable(0, name="global_step", trainable=False)
         # Define Adam optimizer
-        learning_rate = 0.01
+        learning_rate = 0.001
         optimizer = tf.train.AdamOptimizer(learning_rate)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(lstm_language_model.loss, tvars),

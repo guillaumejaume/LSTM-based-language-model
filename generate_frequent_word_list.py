@@ -14,7 +14,6 @@ def main():
     config = Config()
     top_k_words = preprocess_helper.generate_top_k_words(config.input_file_name, config.k_frequent_words)
     top_k_words.extend(['<unk>', '<pad>', '<bos>', '<eos>'])
-    print(top_k_words)
     preprocess_helper.write_list_to_file(top_k_words, config.frequent_words_file_name)
 
 
