@@ -5,8 +5,8 @@ class Config:
 
     def __init__(self):
         # default constructor
-        self.input_file_name = 'data/sentences_small.train'
-        self.k_frequent_words = 100 - 4
+        self.input_file_name = 'data/sentences.train'
+        self.k_frequent_words = 20000 - 4
         self.frequent_words_file_name = 'data/k_frequent_words.word2vec'
         self.embedding_dimension = 100
 

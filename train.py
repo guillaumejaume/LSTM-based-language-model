@@ -14,7 +14,7 @@ import gensim
 
 # Data loading parameters
 tf.flags.DEFINE_float("val_sample_percentage", .001, "Percentage of the training data used for validation")
-tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
+tf.flags.DEFINE_string("data_file_path", "data/sentences.train", "Path to the training data")
 tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.word2vec", "Path to the vocabulary list")
 
 # Model parameters
@@ -102,7 +102,7 @@ with tf.Graph().as_default():
         # Training step
         global_step = tf.Variable(0, name="global_step", trainable=False)
         # Define Adam optimizer
-        learning_rate = 0.0001
+        learning_rate = 0.0002
         optimizer = tf.train.AdamOptimizer(learning_rate)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(lstm_language_model.loss, tvars),

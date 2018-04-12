@@ -83,8 +83,6 @@ with graph.as_default():
         all_perplexity = []
 
         for batch_id, batch in enumerate(batches):
-            if batch_id > 10:
-                break
             x_batch, y_batch = zip(*batch)
             predicted_sentence_batch = sess.run([predicted_sentence], {inputs: x_batch,
                                                                        vocab_embedding: vocab_emb})
