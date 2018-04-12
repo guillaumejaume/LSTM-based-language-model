@@ -14,8 +14,8 @@ import gensim
 
 # Data loading parameters
 tf.flags.DEFINE_float("val_sample_percentage", .001, "Percentage of the training data used for validation")
-tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
-tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.txt", "Path to the vocabulary list")
+tf.flags.DEFINE_string("data_file_path", "data/sentences.train", "Path to the training data")
+tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.word2vec", "Path to the vocabulary list")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -51,7 +51,8 @@ FLAGS = tf.flags.FLAGS
 
 # Prepare the data
 print("Load vocabulary list \n")
-vocab = preprocess_helper.load_frequent_words(FLAGS.vocab_file_path)
+generated_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.vocab_file_path, binary=False)
+vocab = {word: idx for idx, word in enumerate(generated_model.vocab)}
 
 print("Loading and preprocessing training and validation datasets \n")
 data, labels = preprocess_helper.load_and_process_data(FLAGS.data_file_path,
@@ -84,7 +85,7 @@ batches = preprocess_helper.batch_iter(list(zip(x_train, y_train)), FLAGS.batch_
 
 print("Loading and preprocessing done \n")
 
-# Define the model and start traiining
+# Define the model and start training
 with tf.Graph().as_default():
     session_conf = tf.ConfigProto(
         allow_soft_placement=FLAGS.allow_soft_placement,
@@ -101,7 +102,7 @@ with tf.Graph().as_default():
         # Training step
         global_step = tf.Variable(0, name="global_step", trainable=False)
         # Define Adam optimizer
-        learning_rate = 0.001
+        learning_rate = 0.0002
         optimizer = tf.train.AdamOptimizer(learning_rate)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(lstm_language_model.loss, tvars),
@@ -180,15 +181,14 @@ with tf.Graph().as_default():
             print('Predictions: ', predictions)
             if writer:
                 writer.add_summary(summaries, step)
-
         #  Embedding function use word2vec embedding option here
         vocab_embedding = np.zeros(shape=(FLAGS.vocabulary_size, FLAGS.embedding_dimension))
-        model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.path_to_word2vec, binary=False)
-        for tok, idx in vocab.items():
-            if FLAGS.use_word2vec_emb and tok in model.vocab:
-                vocab_embedding[idx] = model[tok]
+        w2v_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.path_to_word2vec, binary=False)
+        for idx, tok in enumerate(generated_model.vocab):
+            if FLAGS.use_word2vec_emb and  tok in w2v_model.vocab:
+                vocab_embedding[idx] = w2v_model[tok]
             else:
-                vocab_embedding[idx] = np.random.uniform(low=-1, high=1, size=FLAGS.embedding_dimension)
+                vocab_embedding[idx] = generated_model[tok]
 
         # TRAINING LOOP
         for batch in batches:

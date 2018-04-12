@@ -11,8 +11,8 @@ import gensim
 
 # Data loading parameters
 tf.flags.DEFINE_string("data_file_path", "data/sentences.continuation", "Path to the training data")
-tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.txt", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1522325038/checkpoints/", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.word2vec", "Path to the vocabulary list")
+tf.flags.DEFINE_string("checkpoint_dir", "/Users/aci/Documents/PhD/Courses/NLU/Development/project/LSTM-based-language-model/runs/1523450577/checkpoints", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -37,7 +37,8 @@ FLAGS = tf.flags.FLAGS
 
 # Load data
 print("Load vocabulary list \n")
-vocab = preprocess_helper.load_frequent_words(FLAGS.vocab_file_path)
+generated_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.vocab_file_path, binary=False)
+vocab = {word: idx for idx, word in enumerate(generated_model.vocab)}
 
 print("Loading and preprocessing test dataset \n")
 x_test, y_test = preprocess_helper.load_and_process_data(FLAGS.data_file_path,
@@ -71,19 +72,17 @@ with graph.as_default():
 
         # Construct the embedding matrix
         vocab_emb = np.zeros(shape=(FLAGS.vocabulary_size, FLAGS.embedding_dimension))
-        model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.path_to_word2vec, binary=False)
-        for tok, idx in vocab.items():
-            if FLAGS.use_word2vec_emb and tok in model.vocab:
-                vocab_emb[idx] = model[tok]
+        w2v_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.path_to_word2vec, binary=False)
+        for idx, tok in enumerate(generated_model.vocab):
+            if FLAGS.use_word2vec_emb and  tok in w2v_model.vocab:
+                vocab_emb[idx] = w2v_model[tok]
             else:
-                vocab_emb[idx] = np.random.uniform(low=-1, high=1, size=FLAGS.embedding_dimension)
+                vocab_emb[idx] = generated_model[tok]
 
         # Collect the predictions here
         all_perplexity = []
 
         for batch_id, batch in enumerate(batches):
-            if batch_id > 10:
-                break
             x_batch, y_batch = zip(*batch)
             predicted_sentence_batch = sess.run([predicted_sentence], {inputs: x_batch,
                                                                        vocab_embedding: vocab_emb})

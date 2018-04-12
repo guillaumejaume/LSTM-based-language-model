@@ -188,7 +188,7 @@ def batch_iter(data, batch_size, num_epochs, shuffle=True):
             yield shuffled_data[start_index:end_index]
 
 
-def generate_top_k_words(file_name, k):
+def generate_top_k_words_and_their_emb(file_name, k, embedding_dimension):
     """ Generates k most frequent words
     Parameters:
     -----------
@@ -200,9 +200,10 @@ def generate_top_k_words(file_name, k):
     
     Returns:
     --------
-    top_k_frequent_words: list 
-    the most frequent k words
+    top_k_frequent_words_and_embedding_pairs: list
+    the most frequent k words with their embeddings
     """
+    extra_words = ['<unk>', '<pad>', '<bos>', '<eos>']
     raw_lines_of_data = load_raw_data(file_name)
     lines = []
     lines.extend(line.rstrip('\n') for line in raw_lines_of_data)
@@ -216,21 +217,29 @@ def generate_top_k_words(file_name, k):
     
     frequency_dictionary = sorted(frequency_dictionary.items(), key=lambda item: item[1], reverse=True)
     top_k_frequent_key_pairs = frequency_dictionary[:k]
-    top_k_frequent_words = [key_pair[0] for key_pair in top_k_frequent_key_pairs]
-    
-    return top_k_frequent_words
+    top_k_frequent_words_and_embedding_pairs = [(key_pair[0], np.random.uniform(low=-1, high=1, size=embedding_dimension)) for key_pair in top_k_frequent_key_pairs]
+    top_k_frequent_words_and_embedding_pairs.extend((extra_word, np.random.uniform(low=-1, high=1, size=embedding_dimension)) for extra_word in extra_words)
+
+    return top_k_frequent_words_and_embedding_pairs
 
 
-def write_list_to_file(string_list, filename):
+def write_list_to_file(tuple_map, filename):
     """ Writes list of items in a file, each item on a separated line
     Parameters:
-    string_list: list
-    list to be written
+    tuple_map: map
+    tuple_map to be written
     
     filename: string
     file name
     """
+
     file = open(filename, "w")
-    for item in string_list:
-        file.write("%s\n" % item)
+    r = len(tuple_map)
+    c = len(tuple_map[0][1])
+    file.write("%d %d \n" % (r, c))
+    for item in tuple_map:
+        file.write("%s " % str(item[0]))
+        for element in item[1]:
+            file.write("%s " % str(element))
+        file.write("\n")
     file.close()
