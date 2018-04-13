@@ -11,8 +11,8 @@ import gensim
 
 # Data loading parameters
 tf.flags.DEFINE_string("data_file_path", "data/sentences.continuation", "Path to the training data")
-tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.word2vec", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./1523549903/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523629833/checkpoints/", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -37,8 +37,7 @@ FLAGS = tf.flags.FLAGS
 
 # Load data
 print("Load vocabulary list \n")
-generated_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.vocab_file_path, binary=False)
-vocab = {word: idx for idx, word in enumerate(generated_model.vocab)}
+vocab, generated_embeddings = preprocess_helper.load_frequent_words_and_embeddings(FLAGS.vocab_with_emb_path)
 
 print("Loading and preprocessing test dataset \n")
 x_test, y_test = preprocess_helper.load_and_process_data(FLAGS.data_file_path,
@@ -73,11 +72,11 @@ with graph.as_default():
         # Construct the embedding matrix
         vocab_emb = np.zeros(shape=(FLAGS.vocabulary_size, FLAGS.embedding_dimension))
         w2v_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.path_to_word2vec, binary=False)
-        for idx, tok in enumerate(generated_model.vocab):
-            if FLAGS.use_word2vec_emb and  tok in w2v_model.vocab:
+        for tok, idx in vocab.items():
+            if FLAGS.use_word2vec_emb and tok in w2v_model.vocab:
                 vocab_emb[idx] = w2v_model[tok]
             else:
-                vocab_emb[idx] = generated_model[tok]
+                vocab_emb[idx] = generated_embeddings[tok]
 
         # Collect the predictions here
         all_perplexity = []
@@ -97,4 +96,7 @@ with graph.as_default():
                 prediction_sentence += ' '
             print('beginning of sentence: ', x_batch)
             print('predicted sentence as words: ', prediction_sentence)
+            print('beginning: ', x_batch)
+            print('predictions: ', predicted_sentence_batch)
             print('\n')
+

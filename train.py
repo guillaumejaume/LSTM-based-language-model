@@ -9,13 +9,15 @@ import time
 import datetime
 
 import gensim
+import numpy as np
 
+np.set_printoptions(threshold=np.nan)
 #Training parameters
 
 # Data loading parameters
 tf.flags.DEFINE_float("val_sample_percentage", .001, "Percentage of the training data used for validation")
 tf.flags.DEFINE_string("data_file_path", "data/sentences.train", "Path to the training data")
-tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.word2vec", "Path to the vocabulary list")
+tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -51,8 +53,7 @@ FLAGS = tf.flags.FLAGS
 
 # Prepare the data
 print("Load vocabulary list \n")
-generated_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.vocab_file_path, binary=False)
-vocab = {word: idx for idx, word in enumerate(generated_model.vocab)}
+vocab, generated_embeddings = preprocess_helper.load_frequent_words_and_embeddings(FLAGS.vocab_with_emb_path)
 
 print("Loading and preprocessing training and validation datasets \n")
 data, labels = preprocess_helper.load_and_process_data(FLAGS.data_file_path,
@@ -182,22 +183,22 @@ with tf.Graph().as_default():
             if writer:
                 writer.add_summary(summaries, step)
         #  Embedding function use word2vec embedding option here
-        vocab_embedding = np.zeros(shape=(FLAGS.vocabulary_size, FLAGS.embedding_dimension))
+        vocab_emb = np.zeros(shape=(FLAGS.vocabulary_size, FLAGS.embedding_dimension))
         w2v_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.path_to_word2vec, binary=False)
-        for idx, tok in enumerate(generated_model.vocab):
-            if FLAGS.use_word2vec_emb and  tok in w2v_model.vocab:
-                vocab_embedding[idx] = w2v_model[tok]
+        for tok, idx in vocab.items():
+            if FLAGS.use_word2vec_emb and tok in w2v_model.vocab:
+                vocab_emb[idx] = w2v_model[tok]
             else:
-                vocab_embedding[idx] = generated_model[tok]
+                vocab_emb[idx] = generated_embeddings[tok]
 
         # TRAINING LOOP
         for batch in batches:
             x_batch, y_batch = zip(*batch)
-            train_step(x_batch, y_batch, vocab_embedding)
+            train_step(x_batch, y_batch, vocab_emb)
             current_step = tf.train.global_step(sess, global_step)
             if current_step % FLAGS.evaluate_every == 0:
                 print("\nEvaluation:")
-                dev_step(x_val, y_val, vocab_embedding, writer=val_summary_writer)
+                dev_step(x_val, y_val, vocab_emb, writer=val_summary_writer)
                 print("")
             if current_step % FLAGS.checkpoint_every == 0:
                 path = saver.save(sess, checkpoint_prefix, global_step=current_step)
