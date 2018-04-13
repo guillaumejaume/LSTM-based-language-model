@@ -12,7 +12,7 @@ import gensim
 # Data loading parameters
 tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
 tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.word2vec", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./1523450577/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("checkpoint_dir", "./1523549903/checkpoints", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
