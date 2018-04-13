@@ -121,8 +121,8 @@ def replace_unknown_words(input_sentences, vocab):
     return output_sentences
 
 
-def load_frequent_words(frequent_word_filename):
-    """ Load the list of frequent words
+def load_frequent_words_and_embeddings(frequent_word_filename):
+    """ Load the list of frequent words and their embeddings
       Parameters:
       -----------
       frequent_word_filename: path to file
@@ -133,11 +133,24 @@ def load_frequent_words(frequent_word_filename):
       vocab: dict
         - the keys are the freq words
         - the values are the indices
+      embeddings: dict
+        - the keys are the freq words
+        - the values are the embeddings
       """
-    frequent_words = load_raw_data(frequent_word_filename)
-    frequent_words = [word.rstrip() for word in frequent_words]
-    vocab = {word: i for i, word in enumerate(frequent_words)}
-    return vocab
+    lines_of_data = load_raw_data(frequent_word_filename)
+    lines_of_data = [line.rstrip() for line in lines_of_data]
+
+    #Avoids the for loop but calls the split function 4 times
+    #vocab = {line.split()[0]: line.split()[1] for line.split() in lines_of_data}
+    #embeddings = {line.split()[0]: line.split()[2:] for line in lines_of_data}
+
+    vocab={}
+    embeddings={}
+    for line in lines_of_data:
+        line_as_array = line.split()
+        vocab[line_as_array[0]]=int(line_as_array[1])
+        embeddings[line_as_array[0]]=line_as_array[2:]
+    return vocab, embeddings
 
 
 def load_and_process_data(filename, vocab, max_sent_length, eos_token=True, pad_sentence=True):
@@ -217,8 +230,8 @@ def generate_top_k_words_and_their_emb(file_name, k, embedding_dimension):
     
     frequency_dictionary = sorted(frequency_dictionary.items(), key=lambda item: item[1], reverse=True)
     top_k_frequent_key_pairs = frequency_dictionary[:k]
-    top_k_frequent_words_and_embedding_pairs = [(key_pair[0], np.random.uniform(low=-1, high=1, size=embedding_dimension)) for key_pair in top_k_frequent_key_pairs]
-    top_k_frequent_words_and_embedding_pairs.extend((extra_word, np.random.uniform(low=-1, high=1, size=embedding_dimension)) for extra_word in extra_words)
+    top_k_frequent_words_and_embedding_pairs = [(key_pair[0],i, np.random.uniform(low=-1, high=1, size=embedding_dimension)) for i, key_pair in enumerate(top_k_frequent_key_pairs)]
+    top_k_frequent_words_and_embedding_pairs.extend((extra_word, k+i, np.random.uniform(low=-1, high=1, size=embedding_dimension)) for i,extra_word in enumerate(extra_words))
 
     return top_k_frequent_words_and_embedding_pairs
 
@@ -234,12 +247,11 @@ def write_list_to_file(tuple_map, filename):
     """
 
     file = open(filename, "w")
-    r = len(tuple_map)
-    c = len(tuple_map[0][1])
-    file.write("%d %d \n" % (r, c))
     for item in tuple_map:
-        file.write("%s " % str(item[0]))
-        for element in item[1]:
+        file.write("%s %s " % (str(item[0]), str(item[1])))
+        for element in item[2]:
             file.write("%s " % str(element))
         file.write("\n")
     file.close()
+
+
