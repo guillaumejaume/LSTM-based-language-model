@@ -101,5 +101,7 @@ with graph.as_default():
                 print('predictions: ', predicted_sentence_batch)
                 print('\n')
             if FLAGS.verbose_for_experiments:
+                prediction_sentence = prediction_sentence.replace("<bos>", "")
+                prediction_sentence = prediction_sentence.replace("<pad>", "")
                 print(prediction_sentence)
-                print('\n')
+
