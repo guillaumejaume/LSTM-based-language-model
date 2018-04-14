@@ -7,12 +7,16 @@ import numpy as np
 
 import gensim
 
+import numpy as np
+
+np.set_printoptions(threshold=np.nan)
+
 #  Parameters
 
 # Data loading parameters
 tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
-tf.flags.DEFINE_string("vocab_file_path", "data/k_frequent_words.word2vec", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./1523549903/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523624122/checkpoints", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -37,8 +41,7 @@ FLAGS = tf.flags.FLAGS
 
 # Load data
 print("Load vocabulary list \n")
-generated_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.vocab_file_path, binary=False)
-vocab = {word: idx for idx, word in enumerate(generated_model.vocab)}
+vocab, generated_embeddings = preprocess_helper.load_frequent_words_and_embeddings(FLAGS.vocab_with_emb_path)
 
 print("Loading and preprocessing test dataset \n")
 x_test, y_test = preprocess_helper.load_and_process_data(FLAGS.data_file_path,
@@ -74,11 +77,11 @@ with graph.as_default():
         # Construct the embedding matrix
         vocab_emb = np.zeros(shape=(FLAGS.vocabulary_size, FLAGS.embedding_dimension))
         w2v_model = gensim.models.KeyedVectors.load_word2vec_format(FLAGS.path_to_word2vec, binary=False)
-        for idx, tok in enumerate(generated_model.vocab):
-            if FLAGS.use_word2vec_emb and  tok in w2v_model.vocab:
+        for tok, idx in vocab.items():
+            if FLAGS.use_word2vec_emb and tok in w2v_model.vocab:
                 vocab_emb[idx] = w2v_model[tok]
             else:
-                vocab_emb[idx] = generated_model[tok]
+                vocab_emb[idx] = generated_embeddings[tok]
 
         # Collect the predictions here
         all_perplexity = []
@@ -95,12 +98,16 @@ with graph.as_default():
             y_batch = y_batch[0]
             for i in range(len(batch_predictions[0])):
                 word = (list(vocab.keys())[list(vocab.values()).index(batch_predictions[0, i])])
+                #print("predicted %s \n"% word)
                 prediction_sentence += word
                 prediction_sentence += ' '
 
                 word = (list(vocab.keys())[list(vocab.values()).index(y_batch[i])])
+                #print("predicted %s \n" % word)
                 ground_truth_sentence += word
                 ground_truth_sentence += ' '
+            print("y_b ", y_batch)
+            print("b_pr", batch_predictions)
             print('ground truth: ', ground_truth_sentence)
             print('predictions: ', prediction_sentence)
             print('perplexity: ', batch_perplexity)
