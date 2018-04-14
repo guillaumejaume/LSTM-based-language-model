@@ -12,12 +12,11 @@ import gensim
 # Data loading parameters
 tf.flags.DEFINE_string("data_file_path", "data/sentences.continuation", "Path to the training data")
 tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523629833/checkpoints/", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523637670/checkpoints/", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
 tf.flags.DEFINE_integer("vocabulary_size", 20000, "Size of the vocabulary")
-tf.flags.DEFINE_integer("state_size", 512, "Size of the hidden LSTM state")
 tf.flags.DEFINE_integer("sentence_length", 30, "Length of the sentence to create")
 
 # Test parameters
@@ -30,7 +29,8 @@ tf.flags.DEFINE_string("path_to_word2vec", "wordembeddings-dim100.word2vec", "Pa
 # Tensorflow Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
-
+tf.flags.DEFINE_boolean("verbose_for_debugging", False, "Allow info to be printed to understand the behaviour of the network")
+tf.flags.DEFINE_boolean("verbose_for_experiments", True, "Print only the predicted sentence")
 FLAGS = tf.flags.FLAGS
 
 # Prepare data
@@ -94,9 +94,12 @@ with graph.as_default():
                 word = (list(vocab.keys())[list(vocab.values()).index(predicted_sentence_batch[0][0, i])])
                 prediction_sentence += word
                 prediction_sentence += ' '
-            print('beginning of sentence: ', x_batch)
-            print('predicted sentence as words: ', prediction_sentence)
-            print('beginning: ', x_batch)
-            print('predictions: ', predicted_sentence_batch)
-            print('\n')
-
+            if FLAGS.verbose_for_debugging:
+                print('beginning of sentence: ', x_batch)
+                print('predicted sentence as words: ', prediction_sentence)
+                print('beginning: ', x_batch)
+                print('predictions: ', predicted_sentence_batch)
+                print('\n')
+            if FLAGS.verbose_for_experiments:
+                print(prediction_sentence)
+                print('\n')
