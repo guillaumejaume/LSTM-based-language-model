@@ -13,9 +13,9 @@ A language model implementation in Tensorflow using Long-Short-Term-Memory (LSTM
 
 
 #### Install @Leonard
-module load python_gpu/3.6.1 cuda/9.0.176 cudnn/7.0
-pip install --user pipenv
-pipenv install numpy
-pipenv install tensorflow-gpu==1.6
-pipenv install gensim
-pipenv shell #To activate this project's virtualenv.  Use 'exit' to leave.
+- module load python_gpu/3.6.1 cuda/9.0.176 cudnn/7.0
+- pip install --user pipenv
+- pipenv install numpy
+- pipenv install tensorflow-gpu==1.6
+- pipenv install gensim
+- pipenv shell #To activate this project's virtualenv.  Use 'exit' to leave.
