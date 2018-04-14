@@ -22,7 +22,8 @@ tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path t
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
 tf.flags.DEFINE_integer("vocabulary_size", 20000, "Size of the vocabulary")
-tf.flags.DEFINE_integer("state_size", 512, "Size of the hidden LSTM state")
+tf.flags.DEFINE_integer("state_size", 1024, "Size of the hidden LSTM state")
+tf.flags.DEFINE_integer("output_size", 512, "Size of the downprojected output of the LSTM")
 tf.flags.DEFINE_integer("sentence_length", 30, "Length of each sentence fed to the LSTM")
 
 # Embedding parameters
@@ -98,7 +99,8 @@ with tf.Graph().as_default():
         # Initialize model
         lstm_language_model = LSTMLanguageModel(vocabulary_size=FLAGS.vocabulary_size,
                                                 embedding_dimensions=FLAGS.embedding_dimension,
-                                                state_size=FLAGS.state_size)
+                                                state_size=FLAGS.state_size,
+                                                output_size=FLAGS.output_size)
 
         # Training step
         global_step = tf.Variable(0, name="global_step", trainable=False)
