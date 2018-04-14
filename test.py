@@ -120,7 +120,7 @@ with graph.as_default():
                 print('\n')
 
             if(FLAGS.verbose_for_experiments == True):
-                print(batch_perplexity)
+                print("%.3f" % batch_perplexity)
 # Print average perplexity
 average_perplexity = np.mean(np.asarray(all_perplexity))
 print("Average: {:g}".format(average_perplexity))
