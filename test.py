@@ -14,7 +14,7 @@ np.set_printoptions(threshold=np.nan)
 #  Parameters
 
 # Data loading parameters
-tf.flags.DEFINE_string("data_file_path", "data/sentences.test", "Path to the training data")
+tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
 tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
 tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523637670/checkpoints", "Checkpoint directory from training run")
 
