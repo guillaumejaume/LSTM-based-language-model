@@ -16,7 +16,7 @@ np.set_printoptions(threshold=np.nan)
 # Data loading parameters
 tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
 tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523637670/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523717678/checkpoints", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -121,7 +121,6 @@ with graph.as_default():
 
             if(FLAGS.verbose_for_experiments == True):
                 print(batch_perplexity)
-                print('\n')
 # Print average perplexity
 average_perplexity = np.mean(np.asarray(all_perplexity))
 print("Average: {:g}".format(average_perplexity))
