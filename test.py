@@ -14,14 +14,13 @@ np.set_printoptions(threshold=np.nan)
 #  Parameters
 
 # Data loading parameters
-tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
+tf.flags.DEFINE_string("data_file_path", "data/sentences.test", "Path to the training data")
 tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523624122/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523637670/checkpoints", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
 tf.flags.DEFINE_integer("vocabulary_size", 20000, "Size of the vocabulary")
-tf.flags.DEFINE_integer("state_size", 512, "Size of the hidden LSTM state")
 tf.flags.DEFINE_integer("sentence_length", 30, "Length of each sentence fed to the LSTM")
 
 # Test parameters
@@ -34,6 +33,8 @@ tf.flags.DEFINE_string("path_to_word2vec", "wordembeddings-dim100.word2vec", "Pa
 # Tensorflow Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
+tf.flags.DEFINE_boolean("verbose_for_debugging", False, "Allow info to be printed to understand the behaviour of the network")
+tf.flags.DEFINE_boolean("verbose_for_experiments", True, "Print only the perplexity")
 
 FLAGS = tf.flags.FLAGS
 
@@ -86,6 +87,9 @@ with graph.as_default():
         # Collect the predictions here
         all_perplexity = []
 
+        if(FLAGS.verbose_for_experiments):
+            print("verbose_for_experiments: Only the perplexity will be shown for each sentence")
+
         for batch_id, batch in enumerate(batches):
             x_batch, y_batch = zip(*batch)
             batch_predictions, batch_perplexity = sess.run([predictions, perplexity],
@@ -106,13 +110,18 @@ with graph.as_default():
                 #print("predicted %s \n" % word)
                 ground_truth_sentence += word
                 ground_truth_sentence += ' '
-            print("y_b ", y_batch)
-            print("b_pr", batch_predictions)
-            print('ground truth: ', ground_truth_sentence)
-            print('predictions: ', prediction_sentence)
-            print('perplexity: ', batch_perplexity)
-            print('\n')
 
+            if(FLAGS.verbose_for_debugging == True):
+                print("y_b ", y_batch)
+                print("b_pr", batch_predictions)
+                print('ground truth: ', ground_truth_sentence)
+                print('predictions: ', prediction_sentence)
+                print('perplexity: ', batch_perplexity)
+                print('\n')
+
+            if(FLAGS.verbose_for_experiments == True):
+                print(batch_perplexity)
+                print('\n')
 # Print average perplexity
 average_perplexity = np.mean(np.asarray(all_perplexity))
 print("Average: {:g}".format(average_perplexity))
