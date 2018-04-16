@@ -28,7 +28,8 @@ class LSTMLanguageModel:
                                      shape=[None, None],
                                      name='labels')
 
-        self.discard_last_prediction = tf.placeholder(tf.bool)
+        self.discard_last_prediction = tf.placeholder(dtype=tf.bool, 
+                                                    name='discard_last_prediction')
 
 
 

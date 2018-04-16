@@ -31,7 +31,8 @@ class LSTMLanguageModelState1024:
                                      shape=[None, None],
                                      name='labels')
 
-        self.discard_last_prediction = tf.placeholder(tf.bool)
+        self.discard_last_prediction = tf.placeholder(dtype=tf.bool, 
+                                                    name='discard_last_prediction')
 
         with tf.device('/gpu:0'):
 
