@@ -99,8 +99,7 @@ with tf.Graph().as_default():
         # Initialize model
         lstm_language_model = LSTMLanguageModel(vocabulary_size=FLAGS.vocabulary_size,
                                                 embedding_dimensions=FLAGS.embedding_dimension,
-                                                state_size=FLAGS.state_size,
-                                                output_size=FLAGS.output_size)
+                                                state_size=FLAGS.state_size)
 
         # Training step
         global_step = tf.Variable(0, name="global_step", trainable=False)
@@ -152,7 +151,8 @@ with tf.Graph().as_default():
             feed_dict = {
                 lstm_language_model.inputs: inputs,
                 lstm_language_model.labels: labels,
-                lstm_language_model.vocab_embedding: vocab_emb
+                lstm_language_model.vocab_embedding: vocab_emb,
+                lstm_language_model.discard_last_prediction: True
             }
             _, step, summaries, loss, perplexity, accuracy = sess.run([train_op,
                                                                        global_step,

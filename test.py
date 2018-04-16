@@ -16,7 +16,7 @@ np.set_printoptions(threshold=np.nan)
 # Data loading parameters
 tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
 tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523717678/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523718313/checkpoints", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -67,6 +67,7 @@ with graph.as_default():
         inputs = graph.get_operation_by_name("inputs").outputs[0]
         labels = graph.get_operation_by_name("labels").outputs[0]
         vocab_embedding = graph.get_operation_by_name("vocab_embedding").outputs[0]
+        discard_last_prediction = graph.get_operation_by_name("discard_last_prediction").outputs[0]
 
         # Tensors we want to evaluate
         predictions = graph.get_operation_by_name("accuracy/predictions").outputs[0]
@@ -95,7 +96,9 @@ with graph.as_default():
             batch_predictions, batch_perplexity = sess.run([predictions, perplexity],
                                                            {inputs: x_batch,
                                                             labels: y_batch,
-                                                            vocab_embedding: vocab_emb})
+                                                            vocab_embedding: vocab_emb,
+                                                            discard_last_prediction: True
+            })
             all_perplexity.append(batch_perplexity)
             prediction_sentence = ''
             ground_truth_sentence = ''
