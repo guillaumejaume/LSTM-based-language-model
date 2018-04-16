@@ -3,18 +3,21 @@ from tensorflow.python.util import nest
 from tensorflow.python.ops import array_ops
 
 
-class LSTMLanguageModel:
+class LSTMLanguageModelState1024:
     """
     LSTM language model
         Predict from a set of observations, probabilities
         of the next word given a fixed-size vocabulary
     """
 
-    def __init__(self, vocabulary_size, embedding_dimensions, state_size):
+    def __init__(self, vocabulary_size, embedding_dimensions, state_size, output_size):
 
         self.vocabulary_size = vocabulary_size
 
         self.state_size = state_size
+
+        # This output size was added for Experiment C. Whenever the output size is smaller than the hidden state size, we will down project the state to an output of size output_size
+        self.output_size = output_size 
 
         self.inputs = tf.placeholder(dtype=tf.int32,
                                      shape=[None, None],
@@ -53,26 +56,32 @@ class LSTMLanguageModel:
                 # remove the last prediction from the output (irr because all the sent have a fixed-len of 30 words)
                 output = output[:, :-1, :]
 
-                output = tf.reshape(output,
-                                    [(tf.shape(self.embedded_inputs)[1]-1) * tf.shape(self.embedded_inputs)[0],
+                output_concat = tf.reshape(output,
+                                    [(tf.shape(output)[1]) * tf.shape(output)[0],
                                      self.state_size])
 
             with tf.variable_scope("softmax_layer"):
 
                 self.weights = tf.get_variable("weights",
-                                          [self.state_size, self.vocabulary_size],
+                                          [self.output_size, self.vocabulary_size],
                                           dtype=tf.float32,
                                           initializer=tf.contrib.layers.xavier_initializer())
+
+                # This is for Experiment C: If state_size == output_size (e.g., both are 512),then we will do nothing. If, however, state_size > output_size, we will downproject the state to output_size (which is 512 according to the assignment)
+                self.weights_downproject = tf.get_variable("weights_downproject",
+                                        [state_size, self.output_size],
+                                        dtype=tf.float32,
+                                        initializer=tf.contrib.layers.xavier_initializer())
 
                 self.bias = tf.get_variable("bias",
                                        [self.vocabulary_size],
                                        dtype=tf.float32,
                                        initializer=tf.contrib.layers.xavier_initializer())
 
-                
-                self.logits = tf.matmul(output, self.weights) + self.bias
+                output_concat = tf.matmul(output_concat, self.weights_downproject)
+                self.logits = tf.matmul(output_concat, self.weights) + self.bias
                 self.logits = tf.reshape(self.logits,
-                                         [tf.shape(self.inputs)[0], tf.shape(self.inputs)[1]-1, self.vocabulary_size])
+                                         [tf.shape(output)[0], tf.shape(output)[1], self.vocabulary_size])
                 self.probabilities = tf.nn.softmax(self.logits)
 
             with tf.variable_scope("loss"):
@@ -129,6 +138,9 @@ class LSTMLanguageModel:
               updated hidden state of the LSTM
           """
         cell_output, state = self.lstm_cell(current_word, state)
+
+        # This is for Experiment C: If state_size == output_size (e.g., both are 512),then we will do nothing. If, however, state_size > output_size, we will downproject the state to output_size (which is 512 according to the assignment)
+        cell_output = tf.matmul(cell_output, self.weights_downproject)
 
         logits = tf.matmul(cell_output, self.weights) + self.bias
         probabilities = tf.nn.softmax(logits)
