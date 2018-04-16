@@ -10,7 +10,7 @@ class LSTMLanguageModel:
         of the next word given a fixed-size vocabulary
     """
 
-    def __init__(self, vocabulary_size, embedding_dimensions, state_size, output_size):
+    def __init__(self, vocabulary_size, embedding_dimensions, state_size, output_size, discard_last_prediction=False):
 
         self.vocabulary_size = vocabulary_size
 
@@ -54,10 +54,11 @@ class LSTMLanguageModel:
                 output, state = self.rnn_dynamic(state=initial_state)
 
                 # remove the last prediction from the output (irr because all the sent have a fixed-len of 30 words)
-                output = output[:, :-1, :]
+                if discard_last_prediction:
+                    output = output[:, :-1, :]
 
-                output = tf.reshape(output,
-                                    [(tf.shape(self.embedded_inputs)[1]-1) * tf.shape(self.embedded_inputs)[0],
+                output_concat = tf.reshape(output,
+                                    [tf.shape(output)[0] * tf.shape(output)[1],
                                      self.state_size])
 
             with tf.variable_scope("softmax_layer"):
@@ -73,7 +74,7 @@ class LSTMLanguageModel:
                                             [state_size, self.output_size],
                                             dtype=tf.float32,
                                             initializer=tf.contrib.layers.xavier_initializer())
-                    output = tf.matmul(output, self.weights_downproject)
+                    output_concat = tf.matmul(output_concat, self.weights_downproject)
 
                 self.bias = tf.get_variable("bias",
                                        [self.vocabulary_size],
@@ -81,9 +82,9 @@ class LSTMLanguageModel:
                                        initializer=tf.contrib.layers.xavier_initializer())
 
                 
-                self.logits = tf.matmul(output, self.weights) + self.bias
+                self.logits = tf.matmul(output_concat, self.weights) + self.bias
                 self.logits = tf.reshape(self.logits,
-                                         [tf.shape(self.inputs)[0], tf.shape(self.inputs)[1]-1, self.vocabulary_size])
+                                         [tf.shape(output)[0], tf.shape(output)[1], self.vocabulary_size])
                 self.probabilities = tf.nn.softmax(self.logits)
 
             with tf.variable_scope("loss"):
