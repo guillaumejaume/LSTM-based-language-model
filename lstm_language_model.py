@@ -28,6 +28,10 @@ class LSTMLanguageModel:
                                      shape=[None, None],
                                      name='labels')
 
+        self.discard_last_prediction = tf.placeholder(tf.bool)
+
+
+
         with tf.device('/gpu:0'):
 
             with tf.variable_scope("Embedding", reuse=tf.AUTO_REUSE):
@@ -51,10 +55,10 @@ class LSTMLanguageModel:
                 output, state = self.rnn_dynamic(state=initial_state)
 
                 # remove the last prediction from the output (irr because all the sent have a fixed-len of 30 words)
-                output = output[:, :-1, :]
+                output = tf.cond(tf.equal(self.discard_last_prediction, True), lambda: output[:, :-1, :], lambda: output)
 
-                output = tf.reshape(output,
-                                    [(tf.shape(self.embedded_inputs)[1]-1) * tf.shape(self.embedded_inputs)[0],
+                output_concat = tf.reshape(output,
+                                    [tf.shape(output)[0] * tf.shape(output)[1],
                                      self.state_size])
 
             with tf.variable_scope("softmax_layer"):
@@ -69,10 +73,9 @@ class LSTMLanguageModel:
                                        dtype=tf.float32,
                                        initializer=tf.contrib.layers.xavier_initializer())
 
-                
-                self.logits = tf.matmul(output, self.weights) + self.bias
+                self.logits = tf.matmul(output_concat, self.weights) + self.bias
                 self.logits = tf.reshape(self.logits,
-                                         [tf.shape(self.inputs)[0], tf.shape(self.inputs)[1]-1, self.vocabulary_size])
+                                         [tf.shape(output)[0], tf.shape(output)[1], self.vocabulary_size])
                 self.probabilities = tf.nn.softmax(self.logits)
 
             with tf.variable_scope("loss"):
