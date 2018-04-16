@@ -31,6 +31,8 @@ class LSTMLanguageModelState1024:
                                      shape=[None, None],
                                      name='labels')
 
+        self.discard_last_prediction = tf.placeholder(tf.bool)
+
         with tf.device('/gpu:0'):
 
             with tf.variable_scope("Embedding", reuse=tf.AUTO_REUSE):
@@ -54,10 +56,10 @@ class LSTMLanguageModelState1024:
                 output, state = self.rnn_dynamic(state=initial_state)
 
                 # remove the last prediction from the output (irr because all the sent have a fixed-len of 30 words)
-                output = output[:, :-1, :]
+                output = tf.cond(tf.equal(self.discard_last_prediction, True), lambda: output[:, :-1, :], lambda: output)
 
                 output_concat = tf.reshape(output,
-                                    [(tf.shape(output)[1]) * tf.shape(output)[0],
+                                    [(tf.shape(output)[0]) * tf.shape(output)[1],
                                      self.state_size])
 
             with tf.variable_scope("softmax_layer"):

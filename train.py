@@ -171,7 +171,8 @@ with tf.Graph().as_default():
             feed_dict = {
                 lstm_language_model.inputs: inputs,
                 lstm_language_model.labels: labels,
-                lstm_language_model.vocab_embedding: vocab_emb
+                lstm_language_model.vocab_embedding: vocab_emb,
+                lstm_language_model.discard_last_prediction: True
             }
             step, summaries, predictions, perplexity, accuracy = sess.run([global_step,
                                                                            val_summary_op,
