@@ -12,7 +12,7 @@ import gensim
 # Data loading parameters
 tf.flags.DEFINE_string("data_file_path", "data/sentences.continuation", "Path to the training data")
 tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523826216/checkpoints/", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs_after_no_discarding/1523912585/checkpoints/", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -86,7 +86,7 @@ with graph.as_default():
             x_batch, y_batch = zip(*batch)
             predicted_sentence_batch = sess.run([predicted_sentence], {inputs: x_batch,
                                                                        vocab_embedding: vocab_emb,
-                                                                       discard_last_prediction:True})
+                                                                       discard_last_prediction:False})
 
             # print('predicted sentence as indices: ', predicted_sentence_batch[0][0])
             prediction_sentence = ''
