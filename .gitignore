@@ -5,6 +5,6 @@ __pycache__/
 data/sentences.continuation
 data/sentences.eval
 data/sentences.train
-runs/
+
 
 wordembeddings-dim100.word2vec
