@@ -14,9 +14,9 @@ np.set_printoptions(threshold=np.nan)
 #  Parameters
 
 # Data loading parameters
-tf.flags.DEFINE_string("data_file_path", "data/sentences.eval", "Path to the training data")
-tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs/1523718313/checkpoints", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("data_file_path", "./data/sentences_test.dms", "Path to the training data")
+tf.flags.DEFINE_string("vocab_with_emb_path", "./data/vocab_with_emb.txt", "Path to the vocabulary list")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs/pretrained_w2v_hidden_layer_1024/checkpoints", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
@@ -33,7 +33,7 @@ tf.flags.DEFINE_string("path_to_word2vec", "wordembeddings-dim100.word2vec", "Pa
 # Tensorflow Parameters
 tf.flags.DEFINE_boolean("allow_soft_placement", True, "Allow device soft device placement")
 tf.flags.DEFINE_boolean("log_device_placement", False, "Log placement of ops on devices")
-tf.flags.DEFINE_boolean("verbose_for_debugging", False, "Allow info to be printed to understand the behaviour of the network")
+tf.flags.DEFINE_boolean("verbose_for_debugging", True, "Allow info to be printed to understand the behaviour of the network")
 tf.flags.DEFINE_boolean("verbose_for_experiments", True, "Print only the perplexity")
 
 FLAGS = tf.flags.FLAGS

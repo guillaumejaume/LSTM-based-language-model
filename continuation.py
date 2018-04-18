@@ -10,9 +10,9 @@ import gensim
 #  Parameters
 
 # Data loading parameters
-tf.flags.DEFINE_string("data_file_path", "data/sentences.continuation", "Path to the training data")
-tf.flags.DEFINE_string("vocab_with_emb_path", "data/vocab_with_emb.txt", "Path to the vocabulary list")
-tf.flags.DEFINE_string("checkpoint_dir", "./runs_after_no_discarding/1523912585/checkpoints/", "Checkpoint directory from training run")
+tf.flags.DEFINE_string("data_file_path", "./data/sentences.continuation", "Path to the training data")
+tf.flags.DEFINE_string("vocab_with_emb_path", "./data/vocab_with_emb.txt", "Path to the vocabulary list")
+tf.flags.DEFINE_string("checkpoint_dir", "./runs/pretrained_w2v_hidden_layer_1024/checkpoints/", "Checkpoint directory from training run")
 
 # Model parameters
 tf.flags.DEFINE_integer("embedding_dimension", 100, "Dimensionality of word embeddings")
