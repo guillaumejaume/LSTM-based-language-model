@@ -16,7 +16,6 @@ class LSTMLanguageModelState1024:
 
         self.state_size = state_size
 
-        # This output size was added for Experiment C. Whenever the output size is smaller than the hidden state size, we will down project the state to an output of size output_size
         self.output_size = output_size 
 
         self.inputs = tf.placeholder(dtype=tf.int32,
@@ -70,7 +69,6 @@ class LSTMLanguageModelState1024:
                                           dtype=tf.float32,
                                           initializer=tf.contrib.layers.xavier_initializer())
 
-                # This is for Experiment C: If state_size == output_size (e.g., both are 512),then we will do nothing. If, however, state_size > output_size, we will downproject the state to output_size (which is 512 according to the assignment)
                 self.weights_downproject = tf.get_variable("weights_downproject",
                                         [state_size, self.output_size],
                                         dtype=tf.float32,
@@ -142,7 +140,6 @@ class LSTMLanguageModelState1024:
           """
         cell_output, state = self.lstm_cell(current_word, state)
 
-        # This is for Experiment C: If state_size == output_size (e.g., both are 512),then we will do nothing. If, however, state_size > output_size, we will downproject the state to output_size (which is 512 according to the assignment)
         cell_output = tf.matmul(cell_output, self.weights_downproject)
 
         logits = tf.matmul(cell_output, self.weights) + self.bias
@@ -212,7 +209,7 @@ class LSTMLanguageModelState1024:
 
         # stack the TensorArray to get a Tensor of shape [time_steps x batch_size x emb_dims]
         output = output.stack()
-        # transpose to shape [batch_size x time_steps x emb_dims]
+        # transpose to shape [batch_size x time_steps x state_size]
         output = tf.transpose(output, perm=[1, 0, 2])
 
         return output, final_state

@@ -201,7 +201,7 @@ class LSTMLanguageModel:
 
         # stack the TensorArray to get a Tensor of shape [time_steps x batch_size x emb_dims]
         output = output.stack()
-        # transpose to shape [batch_size x time_steps x emb_dims]
+        # transpose to shape [batch_size x time_steps x state_size]
         output = tf.transpose(output, perm=[1, 0, 2])
 
         return output, final_state
